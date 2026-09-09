@@ -52,6 +52,25 @@ def load_model():
 
 model, tokenizer, id2label = load_model()
 
+# ============ TOGGLE DARK MODE ============
+if "dark_mode" not in st.session_state:
+    st.session_state.dark_mode = False
+
+col_toggle, _ = st.columns([1, 4])
+with col_toggle:
+    st.session_state.dark_mode = st.toggle("🌙 Dark Mode", value=st.session_state.dark_mode)
+
+dark = st.session_state.dark_mode
+
+# Palet warna, berubah sesuai mode
+THEME = {
+    "bg": "#0E1117" if dark else "#FFFFFF",
+    "card_bg": "#1E222A" if dark else "#F2F5F9",
+    "text": "#FAFAFA" if dark else "#1C1C1C",
+    "primary": "#4C8BF5" if dark else "#1E3A5F",
+    "muted": "#AAAAAA" if dark else "#555555",
+}
+
 # ============ FUNGSI PREDIKSI ============
 def predict(text):
     inputs = tokenizer(
@@ -63,32 +82,37 @@ def predict(text):
     return {id2label[i]: float(probs[i]) for i in range(len(probs))}
 
 # ============ CSS TAMBAHAN (tampilan modern) ============
-st.markdown("""
+st.markdown(f"""
     <style>
-    .main { padding-top: 2rem; }
-    .stButton>button {
+    .stApp {{ background-color: {THEME['bg']}; color: {THEME['text']}; }}
+    .main {{ padding-top: 1rem; }}
+    .stButton>button {{
         width: 100%;
         border-radius: 8px;
         height: 3em;
-        background-color: #1E3A5F;
+        background-color: {THEME['primary']};
         color: white;
         font-weight: 600;
         border: none;
-    }
-    .stButton>button:hover { background-color: #2E5484; color: white; }
-    .result-card {
+    }}
+    .stButton>button:hover {{ opacity: 0.85; color: white; }}
+    .result-card {{
         padding: 1.2rem 1.5rem;
         border-radius: 12px;
-        background-color: #F2F5F9;
-        border-left: 6px solid #1E3A5F;
+        background-color: {THEME['card_bg']};
+        border-left: 6px solid {THEME['primary']};
         margin-top: 1rem;
-    }
+    }}
+    .stTextArea textarea {{
+        background-color: {THEME['card_bg']};
+        color: {THEME['text']};
+    }}
     </style>
 """, unsafe_allow_html=True)
 
 # ============ HEADER ============
-st.markdown("<h1 style='color:#1E3A5F;'>📋 Klasifikasi Teks Sosialisasi PPKD</h1>", unsafe_allow_html=True)
-st.markdown("Model IndoBERT untuk mengklasifikasikan masukan menjadi **apresiasi / netral / saran / keluhan**.")
+st.markdown(f"<h1 style='color:{THEME['primary']};'>📋 Klasifikasi Teks Sosialisasi PPKD</h1>", unsafe_allow_html=True)
+st.markdown(f"<span style='color:{THEME['muted']};'>Model IndoBERT untuk mengklasifikasikan masukan menjadi <b>apresiasi / netral / saran / keluhan</b>.</span>", unsafe_allow_html=True)
 st.divider()
 
 # ============ INPUT ============
@@ -114,11 +138,11 @@ if predict_clicked:
         st.markdown(
             f"""
             <div class="result-card">
-                <span style="font-size:0.9rem;color:#555;">Hasil Prediksi</span><br>
-                <span style="font-size:1.8rem;font-weight:700;color:{LABEL_COLORS.get(top_label,'#1E3A5F')};">
+                <span style="font-size:0.9rem;color:{THEME['muted']};">Hasil Prediksi</span><br>
+                <span style="font-size:1.8rem;font-weight:700;color:{LABEL_COLORS.get(top_label, THEME['primary'])};">
                     {top_label.upper()}
                 </span>
-                <span style="font-size:1.1rem;color:#333;"> — confidence {top_score*100:.1f}%</span>
+                <span style="font-size:1.1rem;color:{THEME['text']};"> — confidence {top_score*100:.1f}%</span>
             </div>
             """,
             unsafe_allow_html=True,
@@ -143,7 +167,9 @@ if predict_clicked:
             xaxis=dict(range=[0, 1], tickformat=".0%"),
             height=320,
             margin=dict(l=10, r=10, t=50, b=10),
-            plot_bgcolor="white",
+            plot_bgcolor=THEME["card_bg"],
+            paper_bgcolor=THEME["bg"],
+            font_color=THEME["text"],
         )
         st.plotly_chart(fig, use_container_width=True)
 

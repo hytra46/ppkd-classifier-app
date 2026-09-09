@@ -6,6 +6,13 @@ import plotly.graph_objects as go
 import gdown
 import pickle
 from transformers import AutoModelForSequenceClassification
+import io
+import torch
+
+# Paksa semua tensor yang di-load selalu ditaruh di CPU,
+# apa pun device asal saat model disimpan
+_original_load_from_bytes = torch.storage._load_from_bytes
+torch.storage._load_from_bytes = lambda b: torch.load(io.BytesIO(b), map_location="cpu")
 
 # ============ KONFIGURASI HALAMAN ============
 st.set_page_config(
